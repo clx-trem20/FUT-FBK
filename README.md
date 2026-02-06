@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -10,6 +9,7 @@
             --card-bg: #1e293b;
             --primary: #22c55e;
             --secondary: #3b82f6;
+            --accent: #8b5cf6;
             --yellow: #facc15;
             --red: #ef4444;
             --text: #f8fafc;
@@ -33,6 +33,14 @@
             flex-grow: 1;
         }
 
+        .header-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
         .card {
             background: var(--card-bg);
             padding: 24px;
@@ -44,36 +52,149 @@
         h1 {
             text-align: center;
             font-size: 2.5rem;
-            margin-bottom: 30px;
+            margin: 0;
             color: var(--primary);
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
-        h2 { font-size: 1.25rem; margin-top: 0; color: #94a3b8; }
-        h3 { font-size: 1rem; color: var(--text); margin-bottom: 10px; }
-
-        /* Registro de Jogadores */
-        .input-row {
+        .header-actions {
+            position: absolute;
+            right: 0;
             display: flex;
-            gap: 12px;
+            gap: 15px;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .action-icon-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+
+        .action-icon-btn:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .logout-btn:hover {
+            color: var(--red) !important;
+        }
+
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        .login-input {
+            width: 100%;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .access-toggle {
+            display: flex;
+            background: #0f172a;
+            padding: 5px;
+            border-radius: 10px;
             margin-bottom: 20px;
         }
 
-        input, textarea {
+        .access-btn {
             flex: 1;
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            padding: 12px 16px;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
             border-radius: 8px;
-            outline: none;
-            font-size: 1rem;
-            font-family: inherit;
+            font-weight: bold;
         }
 
-        textarea { height: 80px; resize: none; }
-        input:focus, textarea:focus { border-color: var(--primary); }
+        .access-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 20px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: #334155;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+        }
+
+        h2 { font-size: 1.25rem; margin-top: 0; color: #94a3b8; }
+        h3 { font-size: 1rem; color: var(--text); margin-bottom: 10px; }
 
         .btn {
             padding: 12px 24px;
@@ -86,13 +207,18 @@
         }
 
         .btn-add { background: var(--primary); color: #fff; }
-        .btn-add:hover { background: #16a34a; transform: translateY(-2px); }
-        
-        .btn-secondary { background: #334155; color: #fff; }
-        .btn-secondary:hover { background: #475569; }
+        .btn-add:hover { transform: translateY(-2px); }
+
+        .btn-draw {
+            width: 100%;
+            background: var(--secondary);
+            color: white;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
 
         .btn-start-ready {
-            background: #8b5cf6; 
+            background: var(--accent); 
             color: white;
             width: 100%;
             margin-top: 10px;
@@ -118,19 +244,42 @@
             align-items: center;
             gap: 8px;
             font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
         }
 
-        .player-tag span { cursor: pointer; color: var(--red); font-weight: bold; }
-
-        .btn-draw {
-            width: 100%;
-            background: var(--secondary);
-            color: white;
-            font-size: 1.2rem;
-            margin-top: 10px;
+        .player-tag.confirmed {
+            border: 2px solid var(--primary);
+            background: #064e3b;
         }
 
-        /* Dashboard de Partida */
+        .player-tag span.remove { color: var(--red); font-weight: bold; margin-left: 5px; }
+
+        .bulk-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .team-column {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+        }
+
+        .team-1-border { border-color: var(--primary); }
+        .team-2-border { border-color: var(--secondary); }
+
         .match-header {
             display: flex;
             justify-content: space-between;
@@ -141,55 +290,9 @@
             border-radius: 12px;
         }
 
-        .timer-box {
-            text-align: center;
-        }
+        #timer { font-size: 3rem; font-family: monospace; color: var(--primary); }
 
-        #timer {
-            font-size: 3rem;
-            font-family: monospace;
-            color: var(--primary);
-            display: block;
-        }
-
-        .timer-controls button {
-            background: #334155;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 4px;
-            margin: 0 5px;
-            cursor: pointer;
-        }
-
-        .btn-undo {
-            background: #475569 !important;
-            font-size: 0.8rem;
-            margin-top: 10px;
-        }
-
-        .teams-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .team-column {
-            background: rgba(15, 23, 42, 0.5);
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid transparent;
-        }
-
-        .team-a-border { border-color: var(--primary); }
-        .team-b-border { border-color: var(--secondary); }
-
-        .score-display {
-            font-size: 4rem;
-            font-weight: 900;
-            text-align: center;
-            margin: 10px 0;
-        }
+        .score-display { font-size: 4rem; font-weight: 900; text-align: center; margin: 10px 0; }
 
         .player-row {
             display: flex;
@@ -199,33 +302,13 @@
             padding: 12px;
             margin-bottom: 8px;
             border-radius: 8px;
-            transition: 0.3s;
         }
 
-        .player-info { flex: 1; }
-        .player-name { font-weight: bold; display: block; }
-        .player-stats-mini { font-size: 0.75rem; color: #94a3b8; }
-
-        .action-btns {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .btn-goal { background: #fff; color: #000; }
-        .btn-y-card { background: var(--yellow); color: #000; }
-        .btn-r-card { background: var(--red); color: #fff; }
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn { width: 32px; height: 32px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-goal { background: #fff; }
+        .btn-y-card { background: var(--yellow); }
+        .btn-r-card { background: var(--red); color: white; }
 
         .log-container {
             margin-top: 30px;
@@ -236,23 +319,32 @@
             overflow-y: auto;
         }
 
-        .log-entry {
-            font-size: 0.85rem;
-            border-bottom: 1px solid #1e293b;
-            padding: 5px 0;
-            color: #94a3b8;
+        .log-entry { font-size: 0.85rem; border-bottom: 1px solid #1e293b; padding: 5px 0; color: #94a3b8; }
+
+        .hidden { display: none !important; }
+
+        .prompt-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 20000;
         }
 
-        .hidden { display: none; }
-
-        .bulk-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
+        input, textarea, select {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+            font-family: inherit;
         }
 
-        /* Rodapé */
+        textarea { height: 150px; resize: none; }
+
         footer {
             margin-top: 40px;
             padding: 20px;
@@ -264,91 +356,140 @@
         }
 
         @media (max-width: 768px) {
-            .teams-grid, .bulk-grid { grid-template-columns: 1fr; }
+            .bulk-grid { grid-template-columns: 1fr; }
             .match-header { flex-direction: column; gap: 20px; }
+            .header-actions { position: relative; justify-content: center; margin-top: 10px; }
+            .header-area { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    <h1>🏆 Arena Premier</h1>
-
-    <!-- Registro -->
-    <div class="card" id="setupCard">
-        <h2>Opção 1: Convocação para Sorteio</h2>
-        <div class="input-row">
-            <input type="text" id="playerName" placeholder="Nome do jogador..." onkeypress="handleEnter(event)">
-            <button class="btn btn-add" id="btnAddPlayer">Adicionar</button>
+<!-- Login Principal -->
+<div id="loginScreen">
+    <div class="card login-card">
+        <h1>🏆 Arena Premier</h1>
+        <p style="color: #94a3b8; margin-bottom: 20px;">Bem-vindo ao sistema de gestão.</p>
+        
+        <div class="access-toggle">
+            <button class="access-btn active" id="toggleMember" onclick="window.switchLogin('member')">Membro</button>
+            <button class="access-btn" id="toggleMaster" onclick="window.switchLogin('master')">Master</button>
         </div>
-        <div class="player-tag-list" id="playerTagList"></div>
-        <button class="btn btn-draw" id="btnDraw">Sortear e Iniciar Jogo</button>
 
-        <hr style="border: 0; border-top: 1px solid #334155; margin: 30px 0;">
-
-        <h2>Opção 2: Iniciar com Times Prontos</h2>
-        <div class="bulk-grid">
-            <div>
-                <h3>Time Verde</h3>
-                <textarea id="bulkTeamA" placeholder="Nomes do Time Verde (um por linha ou vírgula)..."></textarea>
-            </div>
-            <div>
-                <h3>Time Azul</h3>
-                <textarea id="bulkTeamB" placeholder="Nomes do Time Azul (um por linha ou vírgula)..."></textarea>
-            </div>
+        <!-- Formulário Master -->
+        <div id="masterForm" class="hidden">
+            <input type="text" id="loginUser" class="login-input" placeholder="Usuário Master">
+            <input type="password" id="loginPass" class="login-input" placeholder="Senha Master">
+            <button class="btn btn-add" id="btnLoginMaster" style="width: 100%;">Aceder como Master</button>
         </div>
-        <button class="btn btn-start-ready" id="btnStartReady">Iniciar Jogo com Times Prontos</button>
+
+        <!-- Formulário Membro -->
+        <div id="memberForm">
+            <select id="loginMemberSelect" class="login-input">
+                <option value="">Seleciona o teu nome...</option>
+            </select>
+            <input type="password" id="loginMemberPin" class="login-input" placeholder="Teu PIN">
+            <button class="btn btn-add" id="btnLoginMember" style="width: 100%; background: var(--secondary);">Entrar</button>
+        </div>
+
+        <div id="loginError" style="color: var(--red); margin-top: 15px; font-size: 0.9rem; display: none;">Credenciais incorretas!</div>
+    </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="configModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <span class="close-modal" id="closeModal">&times;</span>
+        <h2 style="color: var(--primary);">⚙️ Painel de Administração</h2>
+        <div class="card" style="background: #0f172a; border: 1px solid #334155;">
+            <h3>Cadastrar Novo Membro</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="playerName" placeholder="Nome do jogador...">
+                <input type="password" id="playerPin" placeholder="PIN de acesso (Ex: 1234)">
+                <button class="btn btn-add" id="btnAddPlayer">Adicionar à Base</button>
+            </div>
+            <h3>Gerir Jogadores e PINs</h3>
+            <div class="player-tag-list" id="playerTagList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<div class="main-container hidden" id="appContent">
+    <div class="header-area">
+        <h1>🏆 Arena Premier</h1>
+        <div class="header-actions">
+            <button class="action-icon-btn hidden" id="openConfig" title="Configurações Master">⚙️</button>
+            <button class="action-icon-btn logout-btn" id="btnMasterLogout" title="Sair do Sistema">🚪</button>
+        </div>
     </div>
 
-    <!-- Placar e Jogo -->
+    <div class="tabs" id="mainTabs">
+        <button class="tab-btn active" id="tabConfirm" onclick="window.switchTab('confirm')">Presença</button>
+        <button class="tab-btn hidden" id="tabManual" onclick="window.switchTab('manual')">Equipas Prontas</button>
+    </div>
+
+    <div id="confirmSection">
+        <div class="card">
+            <h2>Lista de Convocados</h2>
+            <p id="welcomeMsg" style="font-size: 1rem; color: var(--primary); margin-bottom: 15px; font-weight: bold;"></p>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">
+                Clica no teu nome para alternar a tua presença. <br>
+                <span id="lockInfo" style="color: var(--accent);">* Apenas o Master pode gerar a partida.</span>
+            </p>
+            <div class="player-tag-list" id="confirmTagList"></div>
+            <div id="countInfo" style="text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; color: var(--primary);">Confirmados: 0</div>
+            <button class="btn btn-draw hidden" id="btnDraw2Teams">Gerar Partida (2 Equipas)</button>
+        </div>
+    </div>
+
+    <div id="manualSection" class="hidden">
+        <div class="card">
+            <h2>Iniciar com Equipas Prontas</h2>
+            <div class="bulk-grid">
+                <div>
+                    <h3 style="color: var(--primary)">Equipa Verde</h3>
+                    <textarea id="bulkTeam1" placeholder="Um nome por linha..."></textarea>
+                </div>
+                <div>
+                    <h3 style="color: var(--secondary)">Equipa Azul</h3>
+                    <textarea id="bulkTeam2" placeholder="Um nome por linha..."></textarea>
+                </div>
+            </div>
+            <button class="btn btn-start-ready" id="btnStartReady">Iniciar Jogo Rápido</button>
+        </div>
+    </div>
+
     <div id="gameDashboard" class="card hidden">
         <div class="match-header">
             <div>
-                <h3 style="margin:0">Tempo de Jogo</h3>
-                <div class="timer-controls" style="margin-top: 5px;">
-                    <button id="playPauseBtn">Iniciar</button>
-                    <button id="resetTimerBtn">Reset</button>
+                <button class="btn btn-add hidden" style="background: var(--red)" id="btnExitGame">Sair do Jogo</button>
+            </div>
+            <div style="text-align: center">
+                <span id="timer">00:00</span>
+                <div id="timerControls" style="margin-top: 10px;" class="hidden">
+                    <button class="tab-btn" id="playPauseBtn">Iniciar</button>
+                    <button class="tab-btn" id="resetTimerBtn">Reset</button>
                 </div>
             </div>
-            <div class="timer-box">
-                <span id="timer">00:00</span>
-                <button class="timer-controls btn btn-undo" id="btnUndoGoal">Anular Último Golo</button>
-            </div>
             <div style="text-align: right">
-                <!-- Botão Voltar ao Início Ajustado -->
-                <button class="btn btn-add" style="background: var(--red)" id="btnExitGame">Voltar ao Início</button>
+                <button class="btn hidden" id="btnUndoGoal" style="background: #475569; color: white;">Anular Golo</button>
             </div>
         </div>
-
-        <div class="teams-grid">
-            <!-- Time A -->
-            <div class="team-column team-a-border">
-                <h2 style="color: var(--primary); text-align: center;">TIME VERDE</h2>
-                <div class="score-display" id="scoreA">0</div>
-                <div id="playersTeamA"></div>
-            </div>
-
-            <!-- Time B -->
-            <div class="team-column team-b-border">
-                <h2 style="color: var(--secondary); text-align: center;">TIME AZUL</h2>
-                <div class="score-display" id="scoreB">0</div>
-                <div id="playersTeamB"></div>
-            </div>
-        </div>
-
+        <div class="teams-grid" id="teamsContainer"></div>
         <div class="log-container" id="matchLog">
-            <div class="log-entry" id="initialLog">Aguardando início da partida...</div>
+            <div class="log-entry">Aguardando início...</div>
         </div>
     </div>
 </div>
 
 <footer>
-    © 2026 – FUT-FBK – Criado por CLX
+    © 2026 – FUT-FBK – Painel Master CLX
 </footer>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDTM6OzYrYqREizcQlrJx-mTWc-opPaB0o",
@@ -362,248 +503,321 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const appId = "fut-fbk-app";
-
-    let playersForDraw = [];
-    let activeMatchPlayers = [];
-    let goalHistory = []; 
-
     const playersRef = collection(db, 'artifacts', appId, 'public', 'data', 'players');
 
-    function loadDrawPlayers() {
-        onSnapshot(playersRef, (snapshot) => {
-            playersForDraw = snapshot.docs.map(doc => ({
-                dbId: doc.id,
-                ...doc.data()
-            }));
-            renderTags();
-        });
-    }
+    let allPlayers = [];
+    let goalHistory = [];
+    let scores = { 1: 0, 2: 0 };
+    let sec = 0, tInt = null;
+    let isMaster = false;
+    let currentUser = null; // Guardará o objeto do membro logado ou "master"
 
-    loadDrawPlayers();
+    // --- NAVEGAÇÃO E LOGIN ---
+    window.switchLogin = (mode) => {
+        const memberBtn = document.getElementById('toggleMember');
+        const masterBtn = document.getElementById('toggleMaster');
+        const memberForm = document.getElementById('memberForm');
+        const masterForm = document.getElementById('masterForm');
 
-    window.addPlayer = async () => {
-        const input = document.getElementById('playerName');
-        const name = input.value.trim();
-        if (name) {
-            await addDoc(playersRef, { 
-                name: name, 
-                createdAt: Date.now() 
-            });
-            input.value = ""; 
-        }
-    };
-
-    window.removePlayer = async (dbId) => {
-        const playerDoc = doc(db, 'artifacts', appId, 'public', 'data', 'players', dbId);
-        await deleteDoc(playerDoc);
-    };
-
-    function renderTags() {
-        const list = document.getElementById('playerTagList');
-        list.innerHTML = playersForDraw.map(p => `
-            <div class="player-tag">
-                ${p.name}
-                <span onclick="removePlayer('${p.dbId}')">&times;</span>
-            </div>
-        `).join('');
-    }
-
-    function shuffleArray(array) {
-        let currentIndex = array.length, randomIndex;
-        while (currentIndex != 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-        }
-        return array;
-    }
-
-    window.drawTeams = () => {
-        if (playersForDraw.length < 2) {
-            alert("Adicione pelo menos 2 jogadores para o sorteio!");
-            return;
-        }
-        let shuffled = shuffleArray([...playersForDraw]);
-        const mid = Math.ceil(shuffled.length / 2);
-        const teamA = shuffled.slice(0, mid);
-        const teamB = shuffled.slice(mid);
-        setupMatch(teamA, teamB);
-    };
-
-    window.startWithReadyTeams = () => {
-        const elA = document.getElementById('bulkTeamA');
-        const elB = document.getElementById('bulkTeamB');
-        const textA = elA.value.trim();
-        const textB = elB.value.trim();
-        if (!textA || !textB) {
-            alert("Preencha os nomes para os dois times!");
-            return;
-        }
-        const namesA = textA.split(/[,\n]/).map(n => n.trim()).filter(n => n.length > 0);
-        const namesB = textB.split(/[,\n]/).map(n => n.trim()).filter(n => n.length > 0);
-        const teamA = namesA.map((name, index) => ({ dbId: 'readyA' + Date.now() + index, name: name }));
-        const teamB = namesB.map((name, index) => ({ dbId: 'readyB' + Date.now() + index, name: name }));
-        elA.value = "";
-        elB.value = "";
-        setupMatch(teamA, teamB);
-    };
-
-    function setupMatch(teamA, teamB) {
-        activeMatchPlayers = [...teamA.map(p => ({...p, goals: 0, yellowCards: 0, redCards: 0})), 
-                             ...teamB.map(p => ({...p, goals: 0, yellowCards: 0, redCards: 0}))];
-        renderMatchPlayers('playersTeamA', teamA, 'A');
-        renderMatchPlayers('playersTeamB', teamB, 'B');
-        document.getElementById('setupCard').classList.add('hidden');
-        document.getElementById('gameDashboard').classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        log("Partida iniciada!");
-    }
-
-    function renderMatchPlayers(containerId, teamPlayers, teamSide) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = teamPlayers.map(p => `
-            <div class="player-row" id="p-row-${p.dbId}">
-                <div class="player-info">
-                    <span class="player-name">${p.name}</span>
-                    <span class="player-stats-mini" id="stats-${p.dbId}">Gols: 0 | CA: 0</span>
-                </div>
-                <div class="action-btns">
-                    <button class="action-btn btn-goal" onclick="recordAction('${p.dbId}', 'goal', '${teamSide}')">⚽</button>
-                    <button class="action-btn btn-y-card" onclick="recordAction('${p.dbId}', 'yellow')">🟨</button>
-                    <button class="action-btn btn-r-card" onclick="recordAction('${p.dbId}', 'red')">🟥</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    let timerInterval;
-    let seconds = 0;
-    let isRunning = false;
-    let scoreA = 0;
-    let scoreB = 0;
-
-    window.recordAction = (playerId, type, teamSide) => {
-        const player = activeMatchPlayers.find(p => p.dbId === playerId);
-        if (!player) return;
-        const timeStr = document.getElementById('timer').innerText;
-        if (type === 'goal') {
-            player.goals++;
-            if (teamSide === 'A') {
-                scoreA++;
-                document.getElementById('scoreA').innerText = scoreA;
-            } else {
-                scoreB++;
-                document.getElementById('scoreB').innerText = scoreB;
-            }
-            goalHistory.push({ playerId, teamSide });
-            log(`${timeStr} - GOL! ${player.name} marcou.`);
-        } 
-        else if (type === 'yellow') {
-            player.yellowCards++;
-            log(`${timeStr} - Cartão Amarelo: ${player.name}.`);
-            if (player.yellowCards >= 2) recordAction(playerId, 'red');
-        } 
-        else if (type === 'red') {
-            player.redCards++;
-            const row = document.getElementById(`p-row-${playerId}`);
-            if (row) {
-                row.style.opacity = '0.3';
-                row.style.background = '#450a0a';
-            }
-            log(`${timeStr} - CARTÃO VERMELHO! ${player.name} expulso.`);
-        }
-        updatePlayerStatsUI(player);
-    };
-
-    window.undoLastGoal = () => {
-        if (goalHistory.length === 0) return;
-        const lastGoal = goalHistory.pop();
-        const player = activeMatchPlayers.find(p => p.dbId === lastGoal.playerId);
-        if (player && player.goals > 0) {
-            player.goals--;
-            if (lastGoal.teamSide === 'A') {
-                scoreA--;
-                document.getElementById('scoreA').innerText = scoreA;
-            } else {
-                scoreB--;
-                document.getElementById('scoreB').innerText = scoreB;
-            }
-            updatePlayerStatsUI(player);
-            log(`Golo de ${player.name} foi ANULADO.`);
-        }
-    };
-
-    window.exitGame = () => {
-        document.getElementById('gameDashboard').classList.add('hidden');
-        document.getElementById('setupCard').classList.remove('hidden');
-        
-        clearInterval(timerInterval);
-        seconds = 0;
-        isRunning = false;
-        document.getElementById('timer').innerText = "00:00";
-        document.getElementById('playPauseBtn').innerText = "Iniciar";
-        
-        scoreA = 0;
-        scoreB = 0;
-        document.getElementById('scoreA').innerText = "0";
-        document.getElementById('scoreB').innerText = "0";
-        document.getElementById('matchLog').innerHTML = '<div class="log-entry">Aguardando início da partida...</div>';
-        
-        activeMatchPlayers = [];
-        goalHistory = [];
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function updatePlayerStatsUI(player) {
-        const statsEl = document.getElementById(`stats-${player.dbId}`);
-        if (statsEl) statsEl.innerText = `Gols: ${player.goals} | CA: ${player.yellowCards}`;
-    }
-
-    function log(msg) {
-        const logBox = document.getElementById('matchLog');
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.innerText = msg;
-        logBox.prepend(entry);
-    }
-
-    window.toggleTimer = () => {
-        const btn = document.getElementById('playPauseBtn');
-        if (isRunning) {
-            clearInterval(timerInterval);
-            btn.innerText = "Retomar";
-            isRunning = false;
+        if(mode === 'master') {
+            masterBtn.classList.add('active');
+            memberBtn.classList.remove('active');
+            masterForm.classList.remove('hidden');
+            memberForm.classList.add('hidden');
         } else {
-            timerInterval = setInterval(() => {
-                seconds++;
-                const m = Math.floor(seconds / 60);
-                const s = seconds % 60;
-                document.getElementById('timer').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            memberBtn.classList.add('active');
+            masterBtn.classList.remove('active');
+            memberForm.classList.remove('hidden');
+            masterForm.classList.add('hidden');
+        }
+    };
+
+    window.switchTab = (tab) => {
+        document.getElementById('manualSection').classList.add('hidden');
+        document.getElementById('confirmSection').classList.add('hidden');
+        document.getElementById('gameDashboard').classList.add('hidden');
+        document.getElementById('tabManual').classList.remove('active');
+        document.getElementById('tabConfirm').classList.remove('active');
+        document.getElementById('mainTabs').classList.remove('hidden');
+
+        if (tab === 'manual') {
+            document.getElementById('manualSection').classList.remove('hidden');
+            document.getElementById('tabManual').classList.add('active');
+        } else if (tab === 'confirm') {
+            document.getElementById('confirmSection').classList.remove('hidden');
+            document.getElementById('tabConfirm').classList.add('active');
+        }
+    };
+
+    // --- AÇÕES DO JOGO ---
+    window.goal = (name, tid) => {
+        if(!isMaster) return;
+        scores[tid]++;
+        const el = document.getElementById(`score${tid}`);
+        if(el) el.innerText = scores[tid];
+        goalHistory.push({ tid });
+        logMatch(`GOL: ${name}`);
+    };
+
+    window.yellowCard = (name) => {
+        if(!isMaster) return;
+        logMatch(`Amarelo: ${name}`);
+    };
+
+    window.redCard = (name, pid) => {
+        if(!isMaster) return;
+        logMatch(`Vermelho: ${name}`);
+        const row = document.getElementById(`row-${pid}`);
+        if(row) row.style.opacity = '0.3';
+    };
+
+    // --- GESTÃO DE DADOS ---
+    window.deletePlayer = async (id) => {
+        if(!isMaster) return;
+        if(confirm("Eliminar jogador da base de dados?")) {
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id));
+        }
+    };
+
+    window.togglePresence = async (id) => {
+        const player = allPlayers.find(p => p.id === id);
+        // Regra: Se for Master, pode mudar qualquer um. Se for Membro, só pode mudar o próprio.
+        if (isMaster || (currentUser && currentUser.id === id)) {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id), { confirmed: !player.confirmed });
+        } else {
+            alert("Só podes marcar a tua própria presença!");
+        }
+    };
+
+    // --- EVENTOS DE CLIQUE ---
+
+    // Login Master
+    document.getElementById('btnLoginMaster').onclick = () => {
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+        if (user === "CLX" && pass === "02072007") {
+            isMaster = true;
+            currentUser = { name: "Master CLX", id: "master" };
+            enterApp();
+        } else {
+            showLoginError();
+        }
+    };
+
+    // Login Membro
+    document.getElementById('btnLoginMember').onclick = () => {
+        const pid = document.getElementById('loginMemberSelect').value;
+        const pin = document.getElementById('loginMemberPin').value;
+        const player = allPlayers.find(p => p.id === pid);
+
+        if (player && String(player.pin) === String(pin)) {
+            isMaster = false;
+            currentUser = player;
+            enterApp();
+        } else {
+            showLoginError();
+        }
+    };
+
+    function enterApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContent').classList.remove('hidden');
+        document.getElementById('welcomeMsg').innerText = `Olá, ${currentUser.name}!`;
+        
+        // Ajustar visibilidade de recursos Master
+        if (isMaster) {
+            document.getElementById('openConfig').classList.remove('hidden');
+            document.getElementById('tabManual').classList.remove('hidden');
+            document.getElementById('btnDraw2Teams').classList.remove('hidden');
+            document.getElementById('btnExitGame').classList.remove('hidden');
+            document.getElementById('btnUndoGoal').classList.remove('hidden');
+            document.getElementById('timerControls').classList.remove('hidden');
+        } else {
+            document.getElementById('openConfig').classList.add('hidden');
+            document.getElementById('tabManual').classList.add('hidden');
+            document.getElementById('btnDraw2Teams').classList.add('hidden');
+            document.getElementById('btnExitGame').classList.add('hidden');
+            document.getElementById('btnUndoGoal').classList.add('hidden');
+            document.getElementById('timerControls').classList.add('hidden');
+        }
+        window.switchTab('confirm');
+    }
+
+    function showLoginError() {
+        document.getElementById('loginError').style.display = 'block';
+        setTimeout(() => { document.getElementById('loginError').style.display = 'none'; }, 3000);
+    }
+
+    document.getElementById('btnMasterLogout').onclick = () => {
+        if(confirm("Encerrar sessão?")) {
+            isMaster = false;
+            currentUser = null;
+            document.getElementById('loginUser').value = "";
+            document.getElementById('loginPass').value = "";
+            document.getElementById('loginMemberPin').value = "";
+            document.getElementById('appContent').classList.add('hidden');
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+    };
+
+    document.getElementById('btnExitGame').onclick = () => {
+        if(confirm("Desejas sair da partida?")) {
+            if(tInt) clearInterval(tInt);
+            tInt = null;
+            sec = 0;
+            window.switchTab('confirm');
+        }
+    };
+
+    document.getElementById('openConfig').onclick = () => document.getElementById('configModal').classList.remove('hidden');
+    document.getElementById('closeModal').onclick = () => document.getElementById('configModal').classList.add('hidden');
+
+    document.getElementById('btnAddPlayer').onclick = async () => {
+        const n = document.getElementById('playerName').value.trim();
+        const p = document.getElementById('playerPin').value.trim();
+        if (n && p) {
+            await addDoc(playersRef, { name: n, pin: p, confirmed: false });
+            document.getElementById('playerName').value = "";
+            document.getElementById('playerPin').value = "";
+        }
+    };
+
+    document.getElementById('btnDraw2Teams').onclick = () => {
+        const conf = allPlayers.filter(p => p.confirmed);
+        if(conf.length < 2) return alert("Precisas de pelo menos 2 confirmados.");
+        
+        let shuf = [...conf].sort(() => Math.random() - 0.5);
+        const mid = Math.ceil(shuf.length / 2);
+        
+        startMatch([
+            { name: "VERDE", color: "team-1-border", players: shuf.slice(0, mid), id: 1 },
+            { name: "AZUL", color: "team-2-border", players: shuf.slice(mid), id: 2 }
+        ]);
+    };
+
+    document.getElementById('btnStartReady').onclick = () => {
+        const t1 = document.getElementById('bulkTeam1').value.split('\n').filter(x=>x.trim());
+        const t2 = document.getElementById('bulkTeam2').value.split('\n').filter(x=>x.trim());
+        
+        if(!t1.length || !t2.length) return alert("Preenche as duas equipas.");
+
+        startMatch([
+            { name: "VERDE", color: "team-1-border", players: t1.map(n=>({name:n,id:Math.random()})), id: 1 },
+            { name: "AZUL", color: "team-2-border", players: t2.map(n=>({name:n,id:Math.random()})), id: 2 }
+        ]);
+    };
+
+    document.getElementById('playPauseBtn').onclick = () => {
+        const btn = document.getElementById('playPauseBtn');
+        if(btn.innerText !== "Pausar") {
+            tInt = setInterval(() => {
+                sec++;
+                const m = String(Math.floor(sec/60)).padStart(2,'0');
+                const s = String(sec%60).padStart(2,'0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
             }, 1000);
             btn.innerText = "Pausar";
-            isRunning = true;
+        } else {
+            clearInterval(tInt);
+            btn.innerText = "Retomar";
         }
     };
 
-    window.resetTimer = () => {
-        clearInterval(timerInterval);
-        seconds = 0;
-        isRunning = false;
+    document.getElementById('resetTimerBtn').onclick = () => {
+        if(tInt) clearInterval(tInt);
+        sec = 0;
         document.getElementById('timer').innerText = "00:00";
         document.getElementById('playPauseBtn').innerText = "Iniciar";
     };
 
-    window.handleEnter = (e) => { if (e.key === 'Enter') window.addPlayer(); };
-    
-    document.getElementById('btnAddPlayer').addEventListener('click', window.addPlayer);
-    document.getElementById('btnDraw').addEventListener('click', window.drawTeams);
-    document.getElementById('btnStartReady').addEventListener('click', window.startWithReadyTeams);
-    document.getElementById('playPauseBtn').addEventListener('click', window.toggleTimer);
-    document.getElementById('resetTimerBtn').addEventListener('click', window.resetTimer);
-    document.getElementById('btnUndoGoal').addEventListener('click', window.undoLastGoal);
-    document.getElementById('btnExitGame').addEventListener('click', window.exitGame);
-</script>
+    document.getElementById('btnUndoGoal').onclick = () => {
+        if(!goalHistory.length) return;
+        const last = goalHistory.pop();
+        scores[last.tid]--;
+        document.getElementById(`score${last.tid}`).innerText = scores[last.tid];
+        logMatch("Golo anulado");
+    };
 
+    // --- FIRESTORE SYNC ---
+    onSnapshot(playersRef, (snapshot) => {
+        allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderAll();
+    });
+
+    function renderAll() {
+        // Atualizar lista de Administração
+        const setupList = document.getElementById('playerTagList');
+        if (setupList) {
+            setupList.innerHTML = allPlayers.map(p => `
+                <div class="player-tag">
+                    ${p.name} <span style="font-size:0.7rem; opacity:0.6;">(PIN:${p.pin})</span>
+                    <span class="remove" onclick="window.deletePlayer('${p.id}')">&times;</span>
+                </div>
+            `).join('');
+        }
+
+        // Atualizar Seletor de Login de Membro
+        const select = document.getElementById('loginMemberSelect');
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">Seleciona o teu nome...</option>' + 
+            allPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        select.value = currentVal;
+
+        // Atualizar Lista de Confirmação
+        const confirmList = document.getElementById('confirmTagList');
+        if (confirmList) {
+            const confirmed = allPlayers.filter(p => p.confirmed);
+            document.getElementById('countInfo').innerText = `Confirmados: ${confirmed.length}`;
+            confirmList.innerHTML = allPlayers.map(p => `
+                <div class="player-tag ${p.confirmed ? 'confirmed' : ''}" onclick="window.togglePresence('${p.id}')">
+                    ${p.name}
+                </div>
+            `).join('');
+        }
+    }
+
+    function startMatch(teams) {
+        document.getElementById('confirmSection').classList.add('hidden');
+        document.getElementById('manualSection').classList.add('hidden');
+        document.getElementById('mainTabs').classList.add('hidden');
+        document.getElementById('gameDashboard').classList.remove('hidden');
+        
+        scores = { 1: 0, 2: 0 };
+        goalHistory = [];
+        sec = 0;
+        if(tInt) clearInterval(tInt);
+        document.getElementById('timer').innerText = "00:00";
+        document.getElementById('playPauseBtn').innerText = "Iniciar";
+        document.getElementById('matchLog').innerHTML = '<div class="log-entry">Partida iniciada!</div>';
+
+        const container = document.getElementById('teamsContainer');
+        container.innerHTML = teams.map(t => `
+            <div class="team-column ${t.color}">
+                <h2 style="text-align:center">${t.name}</h2>
+                <div class="score-display" id="score${t.id}">0</div>
+                <div>
+                    ${t.players.map(p => `
+                        <div class="player-row" id="row-${p.id}">
+                            <span>${p.name}</span>
+                            <div class="action-btns ${!isMaster ? 'hidden' : ''}">
+                                <button class="action-btn btn-goal" onclick="window.goal('${p.name}', ${t.id})" title="Golo">⚽</button>
+                                <button class="action-btn btn-y-card" onclick="window.yellowCard('${p.name}')" title="Cartão Amarelo"></button>
+                                <button class="action-btn btn-r-card" onclick="window.redCard('${p.name}', '${p.id}')" title="Cartão Vermelho"></button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function logMatch(m) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const time = document.getElementById('timer').innerText;
+        entry.innerText = `[${time}] ${m}`;
+        document.getElementById('matchLog').prepend(entry);
+    }
+</script>
 </body>
 </html>
