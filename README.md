@@ -269,6 +269,16 @@
             background: #064e3b;
         }
 
+        .player-tag.is-captain {
+            border-color: var(--yellow) !important;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
+        }
+
+        .captain-icon {
+            color: var(--yellow);
+            font-size: 0.8rem;
+        }
+
         .badge-admin {
             background: var(--accent);
             font-size: 0.6rem;
@@ -302,6 +312,8 @@
 
         .team-1-border { border-color: var(--primary); }
         .team-2-border { border-color: var(--secondary); }
+        .team-3-border { border-color: var(--accent); }
+        .team-4-border { border-color: var(--yellow); }
 
         .match-header {
             display: flex;
@@ -325,6 +337,10 @@
             padding: 12px;
             margin-bottom: 8px;
             border-radius: 8px;
+        }
+
+        .player-row.captain-row {
+            border-left: 4px solid var(--yellow);
         }
 
         .action-btns { display: flex; gap: 8px; }
@@ -359,6 +375,31 @@
         }
 
         textarea { height: 150px; resize: none; }
+
+        .config-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .next-matches {
+            margin-top: 20px;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .next-match-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #1e293b;
+            font-size: 0.9rem;
+        }
 
         footer {
             margin-top: 40px;
@@ -453,19 +494,30 @@
             <h2>Lista de Convocados</h2>
             <p id="welcomeMsg" style="font-size: 1rem; color: var(--primary); margin-bottom: 15px; font-weight: bold;"></p>
             
-            <!-- Aviso de Horário solicitado -->
             <div class="schedule-banner">
                 <span>🗓️</span> 
                 <span>Jogos: Quintas-feiras das 18:00 às 19:30</span>
             </div>
 
             <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">
-                Clica num nome para alternar presença. <br>
-                <span id="lockInfo" style="color: var(--accent);">* Apenas Master/Admin podem gerar a partida.</span>
+                Clique no nome para presença. Clique na <span style="color:var(--yellow)">👑</span> para definir capitão fixo.
+                <br>
+                <span id="lockInfo" style="color: var(--accent);">* Sorteio distribui jogadores comuns entre os capitães.</span>
             </p>
             <div class="player-tag-list" id="confirmTagList"></div>
             <div id="countInfo" style="text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; color: var(--primary);">Confirmados: 0</div>
-            <button class="btn btn-draw hidden" id="btnDraw2Teams">Gerar Partida (2 Equipas)</button>
+            
+            <div class="config-row hidden" id="drawConfigRow">
+                <label for="teamSize">Jogadores por Equipa:</label>
+                <select id="teamSize" style="max-width: 100px;">
+                    <option value="5">5 vs 5</option>
+                    <option value="6" selected>6 vs 6</option>
+                    <option value="7">7 vs 7</option>
+                    <option value="8">8 vs 8</option>
+                </select>
+            </div>
+
+            <button class="btn btn-draw hidden" id="btnDrawTeams">Sortear Equipas e Gerar Partidas</button>
         </div>
     </div>
 
@@ -486,12 +538,14 @@
         </div>
     </div>
 
+    <!-- Dashboard de Jogo Dinâmico -->
     <div id="gameDashboard" class="card hidden">
         <div class="match-header">
             <div>
-                <button class="btn btn-add hidden" style="background: var(--red)" id="btnExitGame">Sair do Jogo</button>
+                <button class="btn btn-add hidden" style="background: var(--red)" id="btnExitGame">Encerrar Tudo</button>
             </div>
             <div style="text-align: center">
+                <h3 id="matchTitle" style="margin-bottom: 5px; color: var(--accent);">JOGO 1: EQUIPA A vs EQUIPA B</h3>
                 <span id="timer">00:00</span>
                 <div id="timerControls" style="margin-top: 10px;" class="hidden">
                     <button class="tab-btn" id="playPauseBtn">Iniciar</button>
@@ -500,9 +554,17 @@
             </div>
             <div style="text-align: right">
                 <button class="btn hidden" id="btnUndoGoal" style="background: #475569; color: white;">Anular Golo</button>
+                <button class="btn btn-add hidden" id="btnNextMatch" style="margin-top: 5px; display: block; background: var(--secondary);">Próxima Partida</button>
             </div>
         </div>
+
         <div class="teams-grid" id="teamsContainer"></div>
+
+        <div class="next-matches" id="nextMatchesArea">
+            <h3 style="font-size: 0.9rem; color: #64748b; text-transform: uppercase;">Fila de Espera / Próximos Jogos</h3>
+            <div id="matchQueueList"></div>
+        </div>
+
         <div class="log-container" id="matchLog">
             <div class="log-entry">Aguardando início...</div>
         </div>
@@ -538,6 +600,11 @@
     let isMaster = false;
     let isAdmin = false;
     let currentUser = null;
+
+    // Gerenciamento de múltiplas equipas
+    let generatedTeams = [];
+    let matchQueue = [];
+    let currentMatchIndex = 0;
 
     window.switchLogin = (mode) => {
         const memberBtn = document.getElementById('toggleMember');
@@ -612,6 +679,13 @@
         }
     };
 
+    window.toggleCaptain = async (id, e) => {
+        e.stopPropagation();
+        if (!isAdmin) return;
+        const player = allPlayers.find(p => p.id === id);
+        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id), { isCaptain: !player.isCaptain });
+    };
+
     document.getElementById('btnLoginMaster').onclick = () => {
         const user = document.getElementById('loginUser').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
@@ -647,22 +721,16 @@
         
         if (isMaster) {
             document.getElementById('openConfig').classList.remove('hidden');
-        } else {
-            document.getElementById('openConfig').classList.add('hidden');
         }
 
         if (isAdmin) {
             document.getElementById('tabManual').classList.remove('hidden');
-            document.getElementById('btnDraw2Teams').classList.remove('hidden');
+            document.getElementById('btnDrawTeams').classList.remove('hidden');
+            document.getElementById('drawConfigRow').classList.remove('hidden');
             document.getElementById('btnExitGame').classList.remove('hidden');
             document.getElementById('btnUndoGoal').classList.remove('hidden');
+            document.getElementById('btnNextMatch').classList.remove('hidden');
             document.getElementById('timerControls').classList.remove('hidden');
-        } else {
-            document.getElementById('tabManual').classList.add('hidden');
-            document.getElementById('btnDraw2Teams').classList.add('hidden');
-            document.getElementById('btnExitGame').classList.add('hidden');
-            document.getElementById('btnUndoGoal').classList.add('hidden');
-            document.getElementById('timerControls').classList.add('hidden');
         }
         
         window.switchTab('confirm');
@@ -675,19 +743,12 @@
 
     document.getElementById('btnMasterLogout').onclick = () => {
         if(confirm("Encerrar sessão?")) {
-            isMaster = false;
-            isAdmin = false;
-            currentUser = null;
-            document.getElementById('loginUser').value = "";
-            document.getElementById('loginPass').value = "";
-            document.getElementById('loginMemberPin').value = "";
-            document.getElementById('appContent').classList.add('hidden');
-            document.getElementById('loginScreen').style.display = 'flex';
+            location.reload();
         }
     };
 
     document.getElementById('btnExitGame').onclick = () => {
-        if(confirm("Desejas sair da partida?")) {
+        if(confirm("Desejas encerrar as atividades?")) {
             if(tInt) clearInterval(tInt);
             tInt = null;
             sec = 0;
@@ -707,25 +768,114 @@
                 name: n, 
                 pin: p, 
                 confirmed: false, 
-                role: r 
+                role: r,
+                isCaptain: false
             });
             document.getElementById('playerName').value = "";
             document.getElementById('playerPin').value = "";
         }
     };
 
-    document.getElementById('btnDraw2Teams').onclick = () => {
+    // Sorteio de múltiplas equipas com Capitães Fixos
+    document.getElementById('btnDrawTeams').onclick = () => {
         const conf = allPlayers.filter(p => p.confirmed);
-        if(conf.length < 2) return alert("Precisas de pelo menos 2 confirmados.");
+        const perTeam = parseInt(document.getElementById('teamSize').value);
         
-        let shuf = [...conf].sort(() => Math.random() - 0.5);
-        const mid = Math.ceil(shuf.length / 2);
+        if(conf.length < (perTeam * 2)) return alert(`Precisas de pelo menos ${perTeam * 2} confirmados para um jogo completo.`);
         
-        startMatch([
-            { name: "VERDE", color: "team-1-border", players: shuf.slice(0, mid), id: 1 },
-            { name: "AZUL", color: "team-2-border", players: shuf.slice(mid), id: 2 }
-        ]);
+        const captains = conf.filter(p => p.isCaptain);
+        const normals = conf.filter(p => !p.isCaptain).sort(() => Math.random() - 0.5);
+        
+        const numTeams = Math.floor(conf.length / perTeam);
+
+        if (captains.length > numTeams) {
+            alert(`Atenção: Tens ${captains.length} capitães selecionados, mas o número de confirmados permite apenas ${numTeams} equipas. Reduz o número de capitães ou aumenta o número de confirmados.`);
+            return;
+        }
+
+        // Criar equipas vazias
+        generatedTeams = [];
+        for(let i=0; i < numTeams; i++) {
+            generatedTeams.push({
+                name: `EQUIPA ${String.fromCharCode(65 + i)}`,
+                color: `team-${(i % 4) + 1}-border`,
+                players: [],
+                id: i + 1
+            });
+        }
+
+        // 1. Distribuir capitães
+        captains.forEach((cap, idx) => {
+            if (idx < numTeams) {
+                generatedTeams[idx].players.push(cap);
+            }
+        });
+
+        // 2. Preencher o restante com jogadores normais
+        let currentTeamIdx = 0;
+        normals.forEach(player => {
+            // Acha a primeira equipa que ainda não está cheia
+            while (currentTeamIdx < numTeams && generatedTeams[currentTeamIdx].players.length >= perTeam) {
+                currentTeamIdx++;
+            }
+            if (currentTeamIdx < numTeams) {
+                generatedTeams[currentTeamIdx].players.push(player);
+            }
+        });
+
+        // Criar Fila de Jogos
+        matchQueue = [];
+        for(let i=0; i < generatedTeams.length; i++) {
+            for(let j=i+1; j < generatedTeams.length; j++) {
+                matchQueue.push({ t1: generatedTeams[i], t2: generatedTeams[j] });
+            }
+        }
+
+        currentMatchIndex = 0;
+        startMatchFromQueue();
     };
+
+    function startMatchFromQueue() {
+        const match = matchQueue[currentMatchIndex];
+        if(!match) {
+            alert("Todas as partidas foram concluídas!");
+            window.switchTab('confirm');
+            return;
+        }
+
+        document.getElementById('matchTitle').innerText = `PARTIDA ${currentMatchIndex + 1}: ${match.t1.name} vs ${match.t2.name}`;
+        startMatchUI([match.t1, match.t2]);
+        renderQueue();
+    }
+
+    document.getElementById('btnNextMatch').onclick = () => {
+        if(currentMatchIndex < matchQueue.length - 1) {
+            if(confirm("Desejas encerrar este jogo e passar para o próximo da fila?")) {
+                currentMatchIndex++;
+                startMatchFromQueue();
+            }
+        } else {
+            alert("Este é o último jogo da lista!");
+        }
+    };
+
+    function renderQueue() {
+        const list = document.getElementById('matchQueueList');
+        const queueArea = document.getElementById('nextMatchesArea');
+        
+        if(matchQueue.length <= 1) {
+            queueArea.classList.add('hidden');
+            return;
+        }
+        
+        queueArea.classList.remove('hidden');
+        list.innerHTML = matchQueue.slice(currentMatchIndex + 1).map((m, idx) => `
+            <div class="next-match-item">
+                <span>Jogo ${currentMatchIndex + idx + 2}: ${m.t1.name} vs ${m.t2.name}</span>
+                <span style="color: var(--primary)">Aguardando</span>
+            </div>
+        `).join('') || '<div style="color:#64748b; font-size:0.8rem">Nenhuma partida restante na fila.</div>';
+    }
 
     document.getElementById('btnStartReady').onclick = () => {
         const t1 = document.getElementById('bulkTeam1').value.split('\n').filter(x=>x.trim());
@@ -733,10 +883,12 @@
         
         if(!t1.length || !t2.length) return alert("Preenche as duas equipas.");
 
-        startMatch([
-            { name: "VERDE", color: "team-1-border", players: t1.map(n=>({name:n,id:Math.random()})), id: 1 },
-            { name: "AZUL", color: "team-2-border", players: t2.map(n=>({name:n,id:Math.random()})), id: 2 }
-        ]);
+        matchQueue = [{
+            t1: { name: "VERDE", color: "team-1-border", players: t1.map(n=>({name:n,id:Math.random()})), id: 1 },
+            t2: { name: "AZUL", color: "team-2-border", players: t2.map(n=>({name:n,id:Math.random()})), id: 2 }
+        }];
+        currentMatchIndex = 0;
+        startMatchFromQueue();
     };
 
     document.getElementById('playPauseBtn').onclick = () => {
@@ -799,27 +951,28 @@
             const confirmed = allPlayers.filter(p => p.confirmed);
             document.getElementById('countInfo').innerText = `Confirmados: ${confirmed.length}`;
             confirmList.innerHTML = allPlayers.map(p => `
-                <div class="player-tag ${p.confirmed ? 'confirmed' : ''}" onclick="window.togglePresence('${p.id}')">
+                <div class="player-tag ${p.confirmed ? 'confirmed' : ''} ${p.isCaptain ? 'is-captain' : ''}" onclick="window.togglePresence('${p.id}')">
                     ${p.name}
                     ${p.role === 'admin' ? '<span class="badge-admin">ADM</span>' : ''}
+                    <span class="captain-icon" onclick="window.toggleCaptain('${p.id}', event)">${p.isCaptain ? '👑' : '⚪'}</span>
                 </div>
             `).join('');
         }
     }
 
-    function startMatch(teams) {
+    function startMatchUI(teams) {
         document.getElementById('confirmSection').classList.add('hidden');
         document.getElementById('manualSection').classList.add('hidden');
         document.getElementById('mainTabs').classList.add('hidden');
         document.getElementById('gameDashboard').classList.remove('hidden');
         
-        scores = { 1: 0, 2: 0 };
+        scores = { [teams[0].id]: 0, [teams[1].id]: 0 };
         goalHistory = [];
         sec = 0;
         if(tInt) clearInterval(tInt);
         document.getElementById('timer').innerText = "00:00";
         document.getElementById('playPauseBtn').innerText = "Iniciar";
-        document.getElementById('matchLog').innerHTML = '<div class="log-entry">Partida iniciada!</div>';
+        document.getElementById('matchLog').innerHTML = `<div class="log-entry">Partida entre ${teams[0].name} e ${teams[1].name} iniciada!</div>`;
 
         const container = document.getElementById('teamsContainer');
         container.innerHTML = teams.map(t => `
@@ -828,8 +981,8 @@
                 <div class="score-display" id="score${t.id}">0</div>
                 <div>
                     ${t.players.map(p => `
-                        <div class="player-row" id="row-${p.id}">
-                            <span>${p.name}</span>
+                        <div class="player-row ${p.isCaptain ? 'captain-row' : ''}" id="row-${p.id}">
+                            <span>${p.isCaptain ? '👑 ' : ''}${p.name}</span>
                             <div class="action-btns ${!isAdmin ? 'hidden' : ''}">
                                 <button class="action-btn btn-goal" onclick="window.goal('${p.name}', ${t.id})" title="Golo">⚽</button>
                                 <button class="action-btn btn-y-card" onclick="window.yellowCard('${p.name}')" title="Cartão Amarelo"></button>
