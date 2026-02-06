@@ -225,6 +225,21 @@
             font-size: 1.1rem;
         }
 
+        .schedule-banner {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid var(--accent);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
         .player-tag-list {
             display: flex;
             flex-wrap: wrap;
@@ -252,6 +267,14 @@
         .player-tag.confirmed {
             border: 2px solid var(--primary);
             background: #064e3b;
+        }
+
+        .badge-admin {
+            background: var(--accent);
+            font-size: 0.6rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            margin-left: 5px;
         }
 
         .player-tag span.remove { color: var(--red); font-weight: bold; margin-left: 5px; }
@@ -323,14 +346,6 @@
 
         .hidden { display: none !important; }
 
-        .prompt-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 20000;
-        }
-
         input, textarea, select {
             flex: 1;
             background: #0f172a;
@@ -396,19 +411,23 @@
     </div>
 </div>
 
-<!-- Admin Panel -->
+<!-- Admin Panel (Master Only) -->
 <div id="configModal" class="modal-overlay hidden">
     <div class="modal-content">
         <span class="close-modal" id="closeModal">&times;</span>
-        <h2 style="color: var(--primary);">⚙️ Painel de Administração</h2>
+        <h2 style="color: var(--primary);">⚙️ Painel de Administração (Master)</h2>
         <div class="card" style="background: #0f172a; border: 1px solid #334155;">
             <h3>Cadastrar Novo Membro</h3>
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="playerName" placeholder="Nome do jogador...">
                 <input type="password" id="playerPin" placeholder="PIN de acesso (Ex: 1234)">
+                <select id="playerRole">
+                    <option value="member">Membro Comum</option>
+                    <option value="admin">Admin (Gere partidas)</option>
+                </select>
                 <button class="btn btn-add" id="btnAddPlayer">Adicionar à Base</button>
             </div>
-            <h3>Gerir Jogadores e PINs</h3>
+            <h3>Gerir Jogadores e Permissões</h3>
             <div class="player-tag-list" id="playerTagList"></div>
         </div>
     </div>
@@ -433,9 +452,16 @@
         <div class="card">
             <h2>Lista de Convocados</h2>
             <p id="welcomeMsg" style="font-size: 1rem; color: var(--primary); margin-bottom: 15px; font-weight: bold;"></p>
+            
+            <!-- Aviso de Horário solicitado -->
+            <div class="schedule-banner">
+                <span>🗓️</span> 
+                <span>Jogos: Quintas-feiras das 18:00 às 19:30</span>
+            </div>
+
             <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">
-                Clica no teu nome para alternar a tua presença. <br>
-                <span id="lockInfo" style="color: var(--accent);">* Apenas o Master pode gerar a partida.</span>
+                Clica num nome para alternar presença. <br>
+                <span id="lockInfo" style="color: var(--accent);">* Apenas Master/Admin podem gerar a partida.</span>
             </p>
             <div class="player-tag-list" id="confirmTagList"></div>
             <div id="countInfo" style="text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; color: var(--primary);">Confirmados: 0</div>
@@ -510,9 +536,9 @@
     let scores = { 1: 0, 2: 0 };
     let sec = 0, tInt = null;
     let isMaster = false;
-    let currentUser = null; // Guardará o objeto do membro logado ou "master"
+    let isAdmin = false;
+    let currentUser = null;
 
-    // --- NAVEGAÇÃO E LOGIN ---
     window.switchLogin = (mode) => {
         const memberBtn = document.getElementById('toggleMember');
         const masterBtn = document.getElementById('toggleMaster');
@@ -549,9 +575,8 @@
         }
     };
 
-    // --- AÇÕES DO JOGO ---
     window.goal = (name, tid) => {
-        if(!isMaster) return;
+        if(!isAdmin) return;
         scores[tid]++;
         const el = document.getElementById(`score${tid}`);
         if(el) el.innerText = scores[tid];
@@ -560,18 +585,17 @@
     };
 
     window.yellowCard = (name) => {
-        if(!isMaster) return;
+        if(!isAdmin) return;
         logMatch(`Amarelo: ${name}`);
     };
 
     window.redCard = (name, pid) => {
-        if(!isMaster) return;
+        if(!isAdmin) return;
         logMatch(`Vermelho: ${name}`);
         const row = document.getElementById(`row-${pid}`);
         if(row) row.style.opacity = '0.3';
     };
 
-    // --- GESTÃO DE DADOS ---
     window.deletePlayer = async (id) => {
         if(!isMaster) return;
         if(confirm("Eliminar jogador da base de dados?")) {
@@ -581,30 +605,26 @@
 
     window.togglePresence = async (id) => {
         const player = allPlayers.find(p => p.id === id);
-        // Regra: Se for Master, pode mudar qualquer um. Se for Membro, só pode mudar o próprio.
-        if (isMaster || (currentUser && currentUser.id === id)) {
+        if (isAdmin || (currentUser && currentUser.id === id)) {
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players', id), { confirmed: !player.confirmed });
         } else {
-            alert("Só podes marcar a tua própria presença!");
+            alert("Apenas Admins podem marcar a presença de outros jogadores!");
         }
     };
 
-    // --- EVENTOS DE CLIQUE ---
-
-    // Login Master
     document.getElementById('btnLoginMaster').onclick = () => {
         const user = document.getElementById('loginUser').value.trim();
         const pass = document.getElementById('loginPass').value.trim();
         if (user === "CLX" && pass === "02072007") {
             isMaster = true;
-            currentUser = { name: "Master CLX", id: "master" };
+            isAdmin = true;
+            currentUser = { name: "Master CLX", id: "master", role: "master" };
             enterApp();
         } else {
             showLoginError();
         }
     };
 
-    // Login Membro
     document.getElementById('btnLoginMember').onclick = () => {
         const pid = document.getElementById('loginMemberSelect').value;
         const pin = document.getElementById('loginMemberPin').value;
@@ -612,6 +632,7 @@
 
         if (player && String(player.pin) === String(pin)) {
             isMaster = false;
+            isAdmin = (player.role === 'admin');
             currentUser = player;
             enterApp();
         } else {
@@ -622,24 +643,28 @@
     function enterApp() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appContent').classList.remove('hidden');
-        document.getElementById('welcomeMsg').innerText = `Olá, ${currentUser.name}!`;
+        document.getElementById('welcomeMsg').innerText = `Olá, ${currentUser.name}! ${isAdmin && !isMaster ? '(Admin)' : ''}`;
         
-        // Ajustar visibilidade de recursos Master
         if (isMaster) {
             document.getElementById('openConfig').classList.remove('hidden');
+        } else {
+            document.getElementById('openConfig').classList.add('hidden');
+        }
+
+        if (isAdmin) {
             document.getElementById('tabManual').classList.remove('hidden');
             document.getElementById('btnDraw2Teams').classList.remove('hidden');
             document.getElementById('btnExitGame').classList.remove('hidden');
             document.getElementById('btnUndoGoal').classList.remove('hidden');
             document.getElementById('timerControls').classList.remove('hidden');
         } else {
-            document.getElementById('openConfig').classList.add('hidden');
             document.getElementById('tabManual').classList.add('hidden');
             document.getElementById('btnDraw2Teams').classList.add('hidden');
             document.getElementById('btnExitGame').classList.add('hidden');
             document.getElementById('btnUndoGoal').classList.add('hidden');
             document.getElementById('timerControls').classList.add('hidden');
         }
+        
         window.switchTab('confirm');
     }
 
@@ -651,6 +676,7 @@
     document.getElementById('btnMasterLogout').onclick = () => {
         if(confirm("Encerrar sessão?")) {
             isMaster = false;
+            isAdmin = false;
             currentUser = null;
             document.getElementById('loginUser').value = "";
             document.getElementById('loginPass').value = "";
@@ -675,8 +701,14 @@
     document.getElementById('btnAddPlayer').onclick = async () => {
         const n = document.getElementById('playerName').value.trim();
         const p = document.getElementById('playerPin').value.trim();
+        const r = document.getElementById('playerRole').value;
         if (n && p) {
-            await addDoc(playersRef, { name: n, pin: p, confirmed: false });
+            await addDoc(playersRef, { 
+                name: n, 
+                pin: p, 
+                confirmed: false, 
+                role: r 
+            });
             document.getElementById('playerName').value = "";
             document.getElementById('playerPin').value = "";
         }
@@ -738,32 +770,30 @@
         logMatch("Golo anulado");
     };
 
-    // --- FIRESTORE SYNC ---
     onSnapshot(playersRef, (snapshot) => {
         allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderAll();
     });
 
     function renderAll() {
-        // Atualizar lista de Administração
         const setupList = document.getElementById('playerTagList');
         if (setupList) {
             setupList.innerHTML = allPlayers.map(p => `
                 <div class="player-tag">
-                    ${p.name} <span style="font-size:0.7rem; opacity:0.6;">(PIN:${p.pin})</span>
+                    ${p.name} 
+                    ${p.role === 'admin' ? '<span class="badge-admin">ADMIN</span>' : ''}
+                    <span style="font-size:0.7rem; opacity:0.6;">(PIN:${p.pin})</span>
                     <span class="remove" onclick="window.deletePlayer('${p.id}')">&times;</span>
                 </div>
             `).join('');
         }
 
-        // Atualizar Seletor de Login de Membro
         const select = document.getElementById('loginMemberSelect');
         const currentVal = select.value;
         select.innerHTML = '<option value="">Seleciona o teu nome...</option>' + 
             allPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
         select.value = currentVal;
 
-        // Atualizar Lista de Confirmação
         const confirmList = document.getElementById('confirmTagList');
         if (confirmList) {
             const confirmed = allPlayers.filter(p => p.confirmed);
@@ -771,6 +801,7 @@
             confirmList.innerHTML = allPlayers.map(p => `
                 <div class="player-tag ${p.confirmed ? 'confirmed' : ''}" onclick="window.togglePresence('${p.id}')">
                     ${p.name}
+                    ${p.role === 'admin' ? '<span class="badge-admin">ADM</span>' : ''}
                 </div>
             `).join('');
         }
@@ -799,7 +830,7 @@
                     ${t.players.map(p => `
                         <div class="player-row" id="row-${p.id}">
                             <span>${p.name}</span>
-                            <div class="action-btns ${!isMaster ? 'hidden' : ''}">
+                            <div class="action-btns ${!isAdmin ? 'hidden' : ''}">
                                 <button class="action-btn btn-goal" onclick="window.goal('${p.name}', ${t.id})" title="Golo">⚽</button>
                                 <button class="action-btn btn-y-card" onclick="window.yellowCard('${p.name}')" title="Cartão Amarelo"></button>
                                 <button class="action-btn btn-r-card" onclick="window.redCard('${p.name}', '${p.id}')" title="Cartão Vermelho"></button>
